@@ -1,20 +1,34 @@
 import React, { useState } from "react";
 import { ContactsCollection } from "../api/ContactsCollection";
+import { Meteor } from "meteor/meteor";
+import { ErrorAlert } from "./components/ErrorAlert";
+
 
 export const ContactForm = () => {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [imageUrl, setImageUrl] = useState("");
+    const [errorMessage, setError] = useState("");
 
     const saveContact = () => {
         console.log({name, email, imageUrl});
-        ContactsCollection.insert({name, email, imageUrl});
-        setName("");
-        setEmail("");
-        setImageUrl("");
+        // ContactsCollection.insert({name, email, imageUrl});
+        // Use while directly accessing the database using insecure and autopublishing
+        Meteor.call('contacts.insert', { name, email, imageUrl }, (errorResponse) => {
+            if (errorResponse) {
+                setError(errorResponse.error);
+                console.log(errorResponse.error);
+            } else {
+                setName("");
+                setEmail("");
+                setImageUrl("");
+            }
+        })
+        
     }
     return (
         <form className="mt-6">
+            <ErrorAlert message={errorMessage} />
             <div className="grid grid-cols-6 gap-6">
                 <div className="col-span-6 sm:col-span-6 lg:col-span-2">
                     <label htmlFor='name' className="block text-sm font-medium text-gray-700">
